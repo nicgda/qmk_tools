@@ -1,0 +1,105 @@
+
+04 11 00 00 00 00 00 00 64 06 04 34 f0 03 07 0f 1f 31 63 00 00 00 00 00 00 00 00 00 00 ff ff 00 00 00 ff ff 00 00 00 ff 00 ff 00 ff ff ff ff 00 00 00 00 00 00 01 41 00 40 ff 00 00 42 07 ff 00 00 00 ff 00 00 00 ff 00 ff ff ff ff 00 ff 00 ff ff ff ff 42 42 00 ff 00 00 00 ff 00 00 00 ff ff ff 00 00 ff ff ff ff ff fa 00 ff ff 00 00 ff 00 00 ff 00 00 42 ff 00 00 00 ff 00 02 42 02 ff 00 00 01 00
+
+
+
+
+https://git.sammserver.com/sammko/gloryctl/src/master
+
+
+Detail:
+
+Header (00-0C)
+04 
+11 
+00 
+00 - Read:00, Write:7B (dec 123)
+00 00 
+00 
+00 64 
+06 
+04 
+34 
+f0 
+
+DPI profiles (0D-34)
+03 07 0f 1f 31 63 00 00 00 00 00 00 00 00 00 00 - 16 bytes 
+
+ff ff 00 - 8 profiles RGB color
+00 00 ff 
+ff 00 00 
+00 ff 00 
+ff 00 ff 
+ff ff ff 
+00 00 00 
+00 00 00 
+
+RGB effects (35-80)
+BS byte: Brightness (4 upper bits) and Speed (4 lower bits)
+
+-- Current effect (35) --
+01
+-- Glorious effect config (36-37) --
+41 - BS
+00 - direction (bool)
+-- Single colour effect (38-3B) --
+40 - BS
+ff 00 00 - RBG (Red, Blue, Green)
+-- Breathing effect (3C-52) --
+42  - BS
+07  - Number of colours used (out of 7)
+ff 00 00 - Colors in RBG (Red, Blue, Green)
+00 ff 00 
+00 00 ff 
+00 ff ff 
+ff ff 00 
+ff 00 ff 
+ff ff ff 
+-- Tail effect (53) --
+42 - BS
+-- Seamless breathing effect (54) --
+42 
+-- Constant RGB effect (55-67) --
+00 - BS
+ff 00 00 - Six RBG for 6 leds on each sides 
+00 ff 00 
+00 00 ff 
+ff ff 00 
+00 ff ff 
+ff ff ff 
+-- Unknown (68-73) --
+fa 00 ff ff 00 00 ff 00 00 ff 00 00 
+-- Rave effect (74-7A) --
+42 - BS
+ff 00 00 - Two RBG colors
+00 ff 00 
+-- Random effects (7B) --
+02 - BS
+-- Wave effect (7C) --
+42 - BS
+-- Single colour breathing effect (7D-80) --
+02 - BS
+ff 00 00 - GBR
+
+
+Trailer (81-82)
+
+01 - LOD
+00 
+
+--- The end ---
+
+
+
+    pub enum Effect {
+        Off = 0,
+        Glorious = 1,
+        SingleColor = 2,
+        Breathing = 3,
+        Tail = 4,
+        SeamlessBreathing = 5,
+        ConstantRgb = 6,
+        Rave = 7,
+        Random = 8,
+        Wave = 9,
+        SingleBreathing = 10,
