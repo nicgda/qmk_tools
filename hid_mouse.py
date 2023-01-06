@@ -46,13 +46,12 @@ try:
         config = h.get_feature_report(0x04, 520)
         print(f'config: {config.hex(sep=" ")}')
         mor = GloriousModelORecord(config)
-        print(f'mor: {mor.effect}')
-        # ba_config = bytearray(config)
-        # print(f'46: {ba_config[0x35]:02X}')
+        print(f'mor: {mor}')
         update = False
         if args.on:
-            if mor.effect != GloriousEffect.GLORIOUS:
-                mor.effect = GloriousEffect.GLORIOUS
+            if mor.effect != GloriousEffect.SINGLE_COLOUR:
+                mor.effect = GloriousEffect.SINGLE_COLOUR
+                mor.single_rgb = 0x330066
                 update = True
         elif args.off:
             if mor.effect != GloriousEffect.OFF:

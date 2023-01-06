@@ -58,7 +58,7 @@ ff ff ff
 -- Tail effect (53) --
 42 - BS
 -- Seamless breathing effect (54) --
-42 
+42 -BS
 -- Constant RGB effect (55-67) --
 00 - BS
 ff 00 00 - Six RBG for 6 leds on each sides 
@@ -79,7 +79,7 @@ ff 00 00 - Two RBG colors
 42 - BS
 -- Single colour breathing effect (7D-80) --
 02 - BS
-ff 00 00 - GBR
+ff 00 00 - RBG
 
 
 Trailer (81-82)
