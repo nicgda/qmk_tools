@@ -88,18 +88,3 @@ Trailer (81-82)
 00 
 
 --- The end ---
-
-
-
-    pub enum Effect {
-        Off = 0,
-        Glorious = 1,
-        SingleColor = 2,
-        Breathing = 3,
-        Tail = 4,
-        SeamlessBreathing = 5,
-        ConstantRgb = 6,
-        Rave = 7,
-        Random = 8,
-        Wave = 9,
-        SingleBreathing = 10,
