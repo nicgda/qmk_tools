@@ -1,21 +1,32 @@
-####
-#
-# https://github.com/Drugantibus/qmk-hid-rgb/blob/master/hid_rgb.py
-# https://github.com/BlankSourceCode/qmk-hid-display/blob/master/index.js
-#
-#
-#
+"""
+Little utility to send commands to my keyboards to change the
+underglow/side leds colour and intensity.
+
+For the GMMK pro and Idobao ID80 code:
+https://github.com/nicgda/qmk_fork/tree/nicgda
+
+The protocol is quite simple:
+Header, 3 bytes : b'NIC'
+Command, 1 byte
+Arguments, 0-n bytes
+
+This code used the hid package, using the hidapi library.
+
+On macOS, hidapi is available through brew.
+"""
 import argparse
 import functools
 
 import hid
 
-class kb_ids:
-    def __init__(self, vid:int, pid:int, usage_page:int, usage_id:int):
+
+class KeyboardIds:
+    def __init__(self, vid: int, pid: int, usage_page: int, usage_id: int):
         self.vid = vid
         self.pid = pid
         self.usage_page = usage_page
         self.usage_id = usage_id
+
 
 # HID Nic's Commands
 HNC_ON = b'\x01'
@@ -27,7 +38,7 @@ HNC_SAVE = b'\x05'
 keyboards_hid_ids = {
     # GMMK Pro rev1 ANSI
     'gmmk_pro':
-        kb_ids(
+        KeyboardIds(
             vid=0x320F,
             pid=0x5044,
             usage_page=0xFF60,
@@ -35,7 +46,7 @@ keyboards_hid_ids = {
         ),
     # Idobao ID80v2
     'ID80v2':
-        kb_ids(
+        KeyboardIds(
             vid=0x6964,
             pid=0x0080,
             usage_page=0xFF60,
@@ -54,6 +65,7 @@ group_args.add_argument('--set', help='Set the HSV values', type=functools.parti
 group_args.add_argument('--save', help='Save current HSV values', action='store_true')
 args = parser.parse_args()
 
+# Find the device to talk to
 for keys in keyboards_hid_ids.values():
     devices = hid.enumerate(keys.vid, keys.pid)
     if not len(devices):
@@ -93,6 +105,6 @@ try:
         reply = h.read(64, 200)
         if args.set is not None:
             print(f'HSV : {reply[4]:02X} {reply[5]:02X} {reply[6]:02X}')
-        print(f'reply: {reply.hex(sep=" ")}')
+        # print(f'reply: {reply.hex(sep=" ")}')
 except hid.HIDException as err:
     print(f'Error: {err}')

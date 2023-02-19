@@ -1,3 +1,10 @@
+"""
+HID record for the Glorious Modem O mouse.
+Maybe for others, but it's the only one I have.
+
+This code is far from being complete, only the set single colour
+and set effect is done. Those are the one I personally use.
+"""
 import copy
 from enum import IntEnum
 
@@ -63,80 +70,3 @@ class GloriousModelORecord:
     def __mark_changed(self) -> None:
         self.__raw[0x03] = 0x7B  # 123 for the write "command". 0 when reading.
 
-
-
-
-# Source: https://git.sammserver.com/sammko/gloryctl/src/master
-#
-# Header (00-0C)
-#   04
-#   11
-#   00
-#   00 - Read:00, Write:7B (dec 123)
-#   00 00
-#   00
-#   00 64
-#   06
-#   04
-#   34
-#   f0
-#
-# DPI profiles (0D-34)
-#   03 07 0f 1f 31 63 00 00 00 00 00 00 00 00 00 00 - 16 bytes
-#
-#   ff ff 00 - 8 profiles RGB color
-#   00 00 ff
-#   ff 00 00
-#   00 ff 00
-#   ff 00 ff
-#   ff ff ff
-#   00 00 00
-#   00 00 00
-#
-# RGB effects (35-80)
-#   BS byte: Brightness (4 upper bits) and Speed (4 lower bits)
-#
-# -- Current effect (35) --
-#   01
-# -- Glorious effect config (36-37) --
-#   41 - BS
-#   00 - direction (bool)
-# -- Single colour effect (38-3B) --
-#   40 - BS
-#   ff 00 00 - RBG (Red, Blue, Green)
-# -- Breathing effect (3C-52) --
-#   42  - BS
-#   07  - Number of colours used (out of 7)
-#   ff 00 00 - Colors in RBG (Red, Blue, Green)
-#   00 ff 00
-#   00 00 ff
-#   00 ff ff
-#   ff ff 00
-#   ff 00 ff
-#   ff ff ff
-# -- Tail effect (53) --
-#   42 - BS
-# -- Seamless breathing effect (54) --
-#   42 -BS
-# -- Constant RGB effect (55-67) --
-#   00 - BS
-#   ff 00 00 - Six RBG for 6 leds on each sides
-#   00 ff 00
-#   00 00 ff
-#   ff ff 00
-#   00 ff ff
-#   ff ff ff
-# -- Unknown (68-73) --
-#   fa 00 ff ff 00 00 ff 00 00 ff 00 00
-# -- Rave effect (74-7A) --
-#   42 - BS
-#   ff 00 00 - Two RBG colors
-#   00 ff 00
-# -- Random effects (7B) --
-#   02 - BS
-# -- Wave effect (7C) --
-#   42 - BS
-# -- Single colour breathing effect (7D-80) --
-#   02 - BS
-#   ff 00 00 - RBG
-#

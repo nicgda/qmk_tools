@@ -1,8 +1,16 @@
-####
-#
-# https://github.com/...
-# https://rustrepo.com/repo/sammko-gloryctl-rust-utilities
-#
+"""
+Little tool to change the led effect on the Glorious Model O mouse.
+
+This is very incomplete since I personally don't need the other
+commands... yet.
+
+Many thanks to Samuel Čavoj for doing the reverse engineering job
+and sharing it at https://rustrepo.com/repo/sammko-gloryctl-rust-utilities
+
+This code used the hid package, using the hidapi library.
+
+On macOS, hidapi is available through brew.
+"""
 import argparse
 
 import hid
@@ -24,7 +32,6 @@ if not len(devices):
     print('Device not present')
     exit(0)
 for device in devices:
-    # print(f'usage_page: {device["usage_page"]:04X}, usage: {device["usage"]:02X}, interface: {device["interface_number"]}')
     if (
         device['vendor_id'] == model_O_ids.vid
         and device['product_id'] == model_O_ids.pid
@@ -57,9 +64,7 @@ try:
             if mor.effect != GloriousEffect.OFF:
                 mor.effect = GloriousEffect.OFF
                 update = True
-        # print(f'config: {config.hex(sep=" ")}')
         if update:
             res = h.send_feature_report(mor.record)
-        # print(f'req res: {res}')
 except hid.HIDException as err:
     print(f'Error: {err}')
