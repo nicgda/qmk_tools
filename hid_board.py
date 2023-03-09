@@ -103,7 +103,7 @@ try:
 
         h.write(bytes(msg + b'\x00' * (64 - len(msg))))
         reply = h.read(64, 200)
-        if args.set is not None:
+        if args.get is not None:
             print(f'HSV : {reply[4]:02X} {reply[5]:02X} {reply[6]:02X}')
         # print(f'reply: {reply.hex(sep=" ")}')
 except hid.HIDException as err:
