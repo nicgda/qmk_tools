@@ -13,6 +13,7 @@ It also needs to run as root, until I found a better solution.
 On macOS, hidapi is available through brew.
 """
 import argparse
+import time
 
 import hid
 
@@ -23,25 +24,43 @@ from hid_glorious import (EffectDirection,
 
 device_path = None
 
+def auto_int(value):
+    return int(value, 0)
+
 parser = argparse.ArgumentParser()
-group_args = parser.add_mutually_exclusive_group(required=False)
-group_args.add_argument('--off', help='Disable led', action='store_true')
-group_args.add_argument('--glorious', help='Glorious effect, opt: direction (0/1), speed (1-4)', action='store_true')
-group_args.add_argument('--single', help='Single fix colour, opt: RGB hex value, brightness (1-4)', action='store_true')
-group_args.add_argument('--breath', help='Breathing with custom colours, opt: speed (1-4), upto seven RGB hex values', action='store_true')
-group_args.add_argument('--tail', help='Random finger to palm, opt: brightness (1-4), speed (1-4)', action='store_true')
-group_args.add_argument('--seamless', help='Seamless breathing. opt speed (1-4)', action='store_true')
-group_args.add_argument('--six', help='Six fixed colours', action='store_true')
-group_args.add_argument('--rave', help='Two colours rave, opt: brightness (1-4), speed (1-3), two RGB vex values ', action='store_true')
-group_args.add_argument('--random', help='Random changing colours on each led, opt: speed (1-3)', action='store_true')
-group_args.add_argument('--wave', help='Colour wave from palm to finger, opt: brightness (1-4), speed (1-3)', action='store_true')
-group_args.add_argument('--breath_mono', help='Single colour breathing, opt speed (1-4), RGB hex value', action='store_true')
+subparser = parser.add_subparsers(dest='cmd')
+subparser.add_parser('off', help='Disable led')
+sub = subparser.add_parser('glorious', help='Glorious effect')
+sub.add_argument('direction', metavar='direction', nargs='?', choices=[0, 1], type=int, help='Finger to palm (0) or palm to finger (1)')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub = subparser.add_parser('single', help='Single fix colour')
+sub.add_argument('rgb', metavar='RGB', nargs='?', type=auto_int, help='RGB value in hex')
+sub.add_argument('brightness', metavar='brightness', nargs='?', choices=range(1, 5), type=int, help='Led brightness (1-4)')
+sub = subparser.add_parser('breath', help='Breathing with custom colours')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub.add_argument('rgb', metavar='RGB', nargs='*', type=auto_int, help='Upto seven RGB values')
+sub = subparser.add_parser('tail', help='Random finger to palm')
+sub.add_argument('brightness', metavar='brightness', nargs='?', choices=range(1, 5), type=int, help='Led brightness (1-4)')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub = subparser.add_parser('seamless', help='Seamless breathing')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub = subparser.add_parser('six', help='Six fixed colours')
+sub.add_argument('rgb', metavar='RGB', nargs='*', type=auto_int, help='Six RGB values')
+sub = subparser.add_parser('rave', help='Two colours rave')
+sub.add_argument('brightness', metavar='brightness', nargs='?', choices=range(1, 5), type=int, help='Led brightness (1-4)')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub.add_argument('rgb', metavar='RGB', nargs='*', type=auto_int, help='Two RGB values to switch from')
+sub = subparser.add_parser('random', help='Random changing colours on each led')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub = subparser.add_parser('wave', help='Colour wave from palm to finger')
+sub.add_argument('brightness', metavar='brightness', nargs='?', choices=range(1, 5), type=int, help='Led brightness (1-4)')
+sub = subparser.add_parser('breath_mono', help='Single colour breathing')
+sub.add_argument('speed', metavar='speed', nargs='?', choices=range(1, 5), type=int, help='Animation speed (1-4)')
+sub.add_argument('rgb', metavar='RGB', nargs='?', type=auto_int, help='RGB values')
 parser.add_argument('--config', help='Prints the current configuration', action='store_true')
 parser.add_argument('--raw_config', help='Prints the current raw configuration', action='store_true')
-args = parser.parse_known_args()
-# Not the best, but it's working.
-extra = args[1]  # Extra parameter for option customization
-args = args[0]
+args = parser.parse_args()
+print(args)
 
 devices = hid.enumerate(model_O_ids.vid, model_O_ids.pid)
 if not len(devices):
@@ -68,118 +87,79 @@ try:
         config = h.get_feature_report(0x04, 520)
         mor = GloriousModelORecord(config)
         update = False
-        if args.off:
-            mor.effect = GloriousEffect.OFF
-            update = True
-        elif args.glorious:
-            if len(extra):
-                try:
-                    mor.glorious_direction = EffectDirection(int(extra[0]))
-                    if len(extra) > 1:
-                        mor.glorious_speed = int(extra[1])
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.GLORIOUS
-            update = True
-        elif args.single:
-            if len(extra):
-                try:
-                    mor.single_rgb = int(extra[0], 16)
-                    if len(extra) > 1:
-                        mor.single_rgb_brightness = int(extra[1])
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.SINGLE_COLOUR
-            update = True
-        elif args.breath:
-            if len(extra):
-                try:
-                    mor.breath_speed = int(extra[0])
-                    if len(extra) > 1:
-                        values = []
-                        count = len(extra) - 1
-                        if count > 7:
-                            count = 7
-                        for pos in range(1, count + 1):
-                            values.append(int(extra[pos], 16))
-                        mor.breath_rgbs = values
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.BREATHING
-            update = True
-        elif args.tail:
-            if len(extra):
-                try:
-                    mor.tail_brightness = int(extra[0])
-                    if len(extra) > 1:
-                        mor.tail_speed = int(extra[1])
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.TAIL
-            update = True
-        elif args.seamless:
-            if len(extra):
-                try:
-                    mor.x_speed = int(extra[0])
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.SEAMLESS_BREATHING
-            update = True
-        elif args.six:
-            if len(extra) == 6:
-                try:
-                    values = []
-                    for pos in range(6):
-                        values.append(int(extra[pos], 16))
-                    mor.constant_rgbs = values
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.CONSTANT_RGB
-            update = True
-        elif args.rave:
-            if len(extra):
-                try:
-                    mor.rave_brightness = int(extra[0])
-                    if len(extra) > 1:
-                        mor.rave_speed = int(extra[1])
-                    if len(extra) == 4:
-                        values = []
-                        for pos in range(2, 4):
-                            values.append(int(extra[pos], 16))
-                        mor.rave_rgbs = values
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.RAVE
-            update = True
-        elif args.random:
-            if len(extra):
-                try:
-                    mor.random_speed = int(extra[0])
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.RANDOM
-            update = True
-        elif args.wave:
-            try:
-                mor.wave_brightness = int(extra[0])
-                if len(extra) > 1:
-                    mor.wave_speed = int(extra[1])
-            except ValueError:
-                pass
-            mor.effect = GloriousEffect.WAVE
-            update = True
-        elif args.breath_mono:
-            if len(extra):
-                try:
-                    mor.single_breath_speed = int(extra[0])
-                    if len(extra) > 1:
-                        mor.single_breath_rgb = int(extra[1], 16)
-                except ValueError:
-                    pass
-            mor.effect = GloriousEffect.SINGLE_BREATHING
-            update = True
+        match args.cmd:
+            case 'off':
+                mor.effect = GloriousEffect.OFF
+                update = True
+            case 'glorious':
+                if args.direction is not None:
+                    mor.glorious_direction = EffectDirection(args.direction)
+                if args.speed is not None:
+                    mor.glorious_speed = args.speed
+                mor.effect = GloriousEffect.GLORIOUS
+                update = True
+            case 'single':
+                if args.rgb is not None:
+                    mor.single_rgb = args.rgb
+                if args.speed is not None:
+                    mor.single_rgb_brightness = args.speed
+                mor.effect = GloriousEffect.SINGLE_COLOUR
+                update = True
+            case 'breath':
+                if args.speed is not None:
+                    mor.breath_speed = args.speed
+                if args.rgb:
+                    mor.breath_rgbs = args.rgb[:7]
+                mor.effect = GloriousEffect.BREATHING
+                update = True
+            case 'tail':
+                if args.brightness is not None:
+                    mor.tail_brightness = args.brightness
+                if args.speed is not None:
+                    mor.tail_speed = args.speed
+                mor.effect = GloriousEffect.TAIL
+                update = True
+            case 'seamless':
+                if args.speed is not None:
+                    mor.seamless_speed = args.speed
+                mor.effect = GloriousEffect.SEAMLESS_BREATHING
+                update = True
+            case 'six':
+                if args.rgb and len(args.rgb) == 6:
+                    mor.constant_rgbs = args.rgb
+                mor.effect = GloriousEffect.CONSTANT_RGB
+                update = True
+            case 'rave':
+                if args.brightness is not None:
+                    mor.rave_brightness = args.brightness
+                if args.speed is not None:
+                    mor.rave_speed = args.speed
+                if args.rgb and len(args.rgb) == 2:
+                    mor.rave_rgbs = args.rgb
+                mor.effect = GloriousEffect.RAVE
+                update = True
+            case 'random':
+                if args.speed is not None:
+                    mor.random_speed = args.speed
+                mor.effect = GloriousEffect.RANDOM
+                update = True
+            case 'wave':
+                if args.brightness is not None:
+                    mor.wave_brightness = args.brightness
+                if args.speed is not None:
+                    mor.wave_speed = args.speed
+                mor.effect = GloriousEffect.WAVE
+                update = True
+            case 'breath_mono':
+                if args.speed is not None:
+                    mor.single_breath_speed = args.speed
+                if args.rgb:
+                    mor.single_breath_rgb = args.rgb
+                mor.effect = GloriousEffect.SINGLE_BREATHING
+                update = True
         if update:
             res = h.send_feature_report(mor.record)
+            time.sleep(0.1)
         if args.config:
             config = h.get_feature_report(0x04, 520)
             mor = GloriousModelORecord(config)
