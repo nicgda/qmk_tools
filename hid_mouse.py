@@ -24,8 +24,10 @@ from hid_glorious import (EffectDirection,
 
 device_path = None
 
+
 def auto_int(value):
     return int(value, 0)
+
 
 parser = argparse.ArgumentParser()
 subparser = parser.add_subparsers(dest='cmd')
@@ -86,49 +88,42 @@ try:
         res = h.send_feature_report(version_req)
         config = h.get_feature_report(0x04, 520)
         mor = GloriousModelORecord(config)
-        update = False
+        update = True
         match args.cmd:
             case 'off':
                 mor.effect = GloriousEffect.OFF
-                update = True
             case 'glorious':
                 if args.direction is not None:
                     mor.glorious_direction = EffectDirection(args.direction)
                 if args.speed is not None:
                     mor.glorious_speed = args.speed
                 mor.effect = GloriousEffect.GLORIOUS
-                update = True
             case 'single':
                 if args.rgb is not None:
                     mor.single_rgb = args.rgb
-                if args.speed is not None:
-                    mor.single_rgb_brightness = args.speed
+                if args.brightness is not None:
+                    mor.single_rgb_brightness = args.brightness
                 mor.effect = GloriousEffect.SINGLE_COLOUR
-                update = True
             case 'breath':
                 if args.speed is not None:
                     mor.breath_speed = args.speed
                 if args.rgb:
                     mor.breath_rgbs = args.rgb[:7]
                 mor.effect = GloriousEffect.BREATHING
-                update = True
             case 'tail':
                 if args.brightness is not None:
                     mor.tail_brightness = args.brightness
                 if args.speed is not None:
                     mor.tail_speed = args.speed
                 mor.effect = GloriousEffect.TAIL
-                update = True
             case 'seamless':
                 if args.speed is not None:
                     mor.seamless_speed = args.speed
                 mor.effect = GloriousEffect.SEAMLESS_BREATHING
-                update = True
             case 'six':
                 if args.rgb and len(args.rgb) == 6:
                     mor.constant_rgbs = args.rgb
                 mor.effect = GloriousEffect.CONSTANT_RGB
-                update = True
             case 'rave':
                 if args.brightness is not None:
                     mor.rave_brightness = args.brightness
@@ -137,26 +132,24 @@ try:
                 if args.rgb and len(args.rgb) == 2:
                     mor.rave_rgbs = args.rgb
                 mor.effect = GloriousEffect.RAVE
-                update = True
             case 'random':
                 if args.speed is not None:
                     mor.random_speed = args.speed
                 mor.effect = GloriousEffect.RANDOM
-                update = True
             case 'wave':
                 if args.brightness is not None:
                     mor.wave_brightness = args.brightness
                 if args.speed is not None:
                     mor.wave_speed = args.speed
                 mor.effect = GloriousEffect.WAVE
-                update = True
             case 'breath_mono':
                 if args.speed is not None:
                     mor.single_breath_speed = args.speed
                 if args.rgb:
                     mor.single_breath_rgb = args.rgb
                 mor.effect = GloriousEffect.SINGLE_BREATHING
-                update = True
+            case _:
+                update = False
         if update:
             res = h.send_feature_report(mor.record)
             time.sleep(0.1)
