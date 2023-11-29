@@ -62,7 +62,6 @@ sub.add_argument('rgb', metavar='RGB', nargs='?', type=auto_int, help='RGB value
 parser.add_argument('--config', help='Prints the current configuration', action='store_true')
 parser.add_argument('--raw_config', help='Prints the current raw configuration', action='store_true')
 args = parser.parse_args()
-print(args)
 
 devices = hid.enumerate(model_O_ids.vid, model_O_ids.pid)
 if not len(devices):
