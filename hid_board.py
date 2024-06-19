@@ -52,6 +52,14 @@ keyboards_hid_ids = {
             usage_page=0xFF60,
             usage_id=0x61
         ),
+    # Mykeyclub MKC75
+    'mkc75':
+        KeyboardIds(
+            vid=0x5a4c,
+            pid=0x495a,
+            usage_page=0xFF60,
+            usage_id=0x61
+        ),
 }
 
 device_path = None
@@ -69,7 +77,7 @@ args = parser.parse_args()
 for keys in keyboards_hid_ids.values():
     devices = hid.enumerate(keys.vid, keys.pid)
     if not len(devices):
-        print('Device not present')
+        # print('Device not present')
         continue
     for device in devices:
         # print(device)
@@ -103,7 +111,7 @@ try:
 
         h.write(bytes(msg + b'\x00' * (64 - len(msg))))
         reply = h.read(64, 200)
-        if args.get is not None:
+        if args.get:
             print(f'HSV : {reply[4]:02X} {reply[5]:02X} {reply[6]:02X}')
         # print(f'reply: {reply.hex(sep=" ")}')
 except hid.HIDException as err:
