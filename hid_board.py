@@ -15,6 +15,7 @@ This code used the hid package, using the hidapi library.
 On macOS, hidapi is available through brew.
 """
 import argparse
+import colorsys
 import functools
 
 import hid
@@ -70,6 +71,7 @@ group_args.add_argument('--on', help='Enable led notification', action='store_tr
 group_args.add_argument('--off', help='Disable led notification', action='store_true')
 group_args.add_argument('--get', help='Get current HSV values', action='store_true')
 group_args.add_argument('--set', help='Set the HSV values', type=functools.partial(int, base=0), nargs=3)
+group_args.add_argument('--rgb', help='Set the HSV values', type=functools.partial(int, base=0), nargs=1)
 group_args.add_argument('--save', help='Save current HSV values', action='store_true')
 args = parser.parse_args()
 
@@ -100,6 +102,13 @@ try:
         msg = b'NIC'
         if args.set is not None:
             msg += HNC_SET + bytes(args.set)
+        elif args.rgb is not None:
+            raw_value = args.rgb[0]
+            v = colorsys.rgb_to_hsv(
+                ((raw_value >> 16) & 0xFF) / 0xFF,
+                ((raw_value >> 8) & 0xFF) / 0xFF,
+                (raw_value & 0xFF) / 0xFF)
+            msg += HNC_SET + bytes([int(v[0] * 0xFF), int(v[1] * 0xFF), int(v[2] * 0xFF)])
         elif args.on:
             msg += HNC_ON
         elif args.off:
