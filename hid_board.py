@@ -56,8 +56,16 @@ keyboards_hid_ids = {
     # Mykeyclub MKC75
     'mkc75':
         KeyboardIds(
-            vid=0x5a4c,
-            pid=0x495a,
+            vid=0x5A4C,
+            pid=0x495A,
+            usage_page=0xFF60,
+            usage_id=0x61
+        ),
+    # QuertyKeys noe80
+    'neo80':
+        KeyboardIds(
+            vid=0x4E45,
+            pid=0x3830,
             usage_page=0xFF60,
             usage_id=0x61
         ),
